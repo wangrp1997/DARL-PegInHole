@@ -1,0 +1,380 @@
+<!--
+
+MODEL: Univewrsal Robots UR5 + Robotiq S Model 3 Finger Gripper
+AUTHOR: Andrea Franceschetti @IASLAB Research Group
+UNIVERSITY: University of Padua
+DEPARTMENT: Departement of Information Engineering DEI
+Control Engineering / Automation Engineering
+
+-->
+
+
+<!--Link  MuJoCo modeling: http://www.mujoco.org/book/modeling.html-->
+
+<mujoco model="ur5gripper">
+    <compiler angle="radian"
+              inertiafromgeom="true"
+              texturedir="textures/"
+              meshdir="asset/visual/"/>
+    <option timestep="2e-3"
+            iterations="10"
+            tolerance="1e-10"
+            impratio="20"/>
+
+    <size njmax="600" nconmax="150" nstack="300000"/>
+
+    <custom>
+        <numeric name="START_ANGLES" data="-1.57 -1.57 1.57 0 1.57 0"/>
+        <numeric name="N_GRIPPER_JOINTS" data="2" />
+    </custom>
+
+    <default>
+        <site rgba="0.8 0.6 0.7 0.3" type="ellipsoid" group="3"/>
+        <geom contype='1' conaffinity='1' condim='4'  margin="1e-3" solref=".01 1" solimp=".99 .99 .01" />
+        <joint armature="0.01" damping=".1"/>
+        <default class="UR5">
+            <joint damping='65'/>
+        </default>
+        <default class="UR5e">
+            <joint damping='45'/>
+        </default>
+        <default class="GRIPPER">
+            <joint damping='5'/>
+        </default>
+    </default>
+
+    <visual>
+        <map fogstart="3" fogend="5" znear="0.05"/>
+        <quality shadowsize="2048"/>
+        <scale framelength="0.1"
+               framewidth="0.005"
+               contactwidth="0.1"
+               contactheight="0.005"
+               forcewidth="0.01"
+               />
+    </visual>
+
+    <!--Assets-->
+    <asset>
+        <!--Meshes-->
+        <mesh name="base"           file="base.stl"     />
+        <mesh name="shoulder"       file="shoulder.stl" />
+        <mesh name="upperarm"       file="upperarm.stl" />
+        <mesh name="forearm"        file="forearm.stl"  />
+        <mesh name="wrist1"         file="wrist1.stl"   />
+        <mesh name="wrist2"         file="wrist2.stl"   />
+        <mesh name="wrist3"         file="wrist3.stl"   />
+        <mesh name="gripperpalm"    file="palm.STL"     />
+        <mesh name="link_0"         file="link_0.STL"   />
+        <mesh name="link_1"         file="link_1.STL"   />
+        <mesh name="link_2"         file="link_2.STL"   />
+        <mesh name="link_3"         file="link_3.STL"   />
+
+        <mesh name="robotiq_85_base_link_coarse" file="robotiq_85_base_link_coarse.STL" />
+        <mesh name="inner_knuckle_coarse" file="inner_knuckle_coarse.STL" />
+        <mesh name="inner_finger_coarse" file="inner_finger_coarse.STL" />
+        <mesh name="outer_knuckle_coarse" file="outer_knuckle_coarse.STL" />
+        <mesh name="outer_finger_coarse" file="outer_finger_coarse.STL" />
+
+        <!--Textures-->
+        <texture name="ur5_tex"     type="2d"       builtin="flat" height="32" width="32" rgb1="0.45 0.45 0.45" />
+        <texture name="gripper_tex" type="2d"       builtin="flat" height="32" width="32" rgb1="0.45 0.45 0.45" rgb2="0 0 0"/>
+        <texture name="bench_tex"   type="2d"       builtin="flat" height="32" width="32" rgb1="0.7 0.7 0.7" />
+        <texture name="sky_tex"     type="skybox"   builtin="gradient" width="100" height="100" rgb1="1 1 1" rgb2="0.3 0.3 0.8" />
+        <texture name="texgeom"     type="cube"     builtin="flat" mark="cross" width="127" height="1278" rgb1="0.8 0.6 0.4" rgb2="0.8 0.6 0.4" markrgb="1 1 1" random="0.01" />
+        <texture name="floor_tex"   type="2d"        builtin="checker" rgb1=".2 .3 .4" rgb2=".1 .2 .3" width="100" height="100" />
+        <texture name="wood"        type="cube"     file="wood2.png"/>
+        <texture name="metal"        type="cube"     file="metal2.png"/>
+        <!--Materials-->
+        <material name="ur5_mat"        texture="ur5_tex"   shininess="0.9" specular="0.75" reflectance="0.3"/>
+        <material name="gripper_mat"    texture="gripper_tex"   shininess="0.9" specular="0.75" reflectance="0.4"/>
+        <material name='floor_mat'      texture="floor_tex"  shininess="0.8" texrepeat="10 10" specular="0.7"  reflectance="0.5" />
+        <material name='geom'           texture="texgeom"   texuniform="true" />
+        <material name="bench_mat"      texture="metal"   shininess="0.1" specular="0.5" reflectance="0.2"/>
+        <material name="tablecube"      texture="wood" rgba=".8 .8 .8 1"/>
+    </asset>
+
+    <!--Contacts-->
+    <contact>
+        <exclude body1="box_link" body2="base_link"/>
+		<exclude body1="base_link" body2="shoulder_link"/>
+		<exclude body1="shoulder_link" body2="upper_arm_link"/>
+        <exclude body1="upper_arm_link" body2="forearm_link"/>
+		<exclude body1="forearm_link" body2="wrist_1_link"/>
+		<exclude body1="wrist_1_link" body2="wrist_2_link"/>
+        <exclude body1="wrist_2_link" body2="wrist_3_link"/>
+        <exclude body1="EE" body2="wrist_3_link"/>
+    </contact>
+
+
+    <!--MODEL DESCRIPTION-->
+    <worldbody>
+        <!--Lighting parameters-->
+        <light name="light3" mode="targetbody" target="box_link" directional="true" pos="1 -1 3" />
+        <!-- <light name="light3" mode="targetbody" target="box_link" directional="true" pos="1 1 3" /> -->
+        <!--Camera parameters-->
+        <camera name="main1" mode="fixed" target="EE" pos="2 2 2.7" axisangle="2 2 -2 1"/>
+        <camera name="top_down" mode="fixed" target="EE" pos="0 -0.6 2.0" axisangle="2 2 2 0"/>
+        <camera name="side" mode="fixed" target="EE" pos="0.8 -0.6 1.0" quat="0.5 0.5 0.5 0.5"/>
+        <!--Floor Property-->
+        <geom name='floor' material="floor_mat" pos='0 0 0' size='2.5 2.5 0.1'  type='plane' />
+
+
+        <body name="box_2_link" pos="0 -0.6 0.435">
+            <!--<geom size=".3 .2 .435" type="box" material="bench_mat"/>-->
+            <geom size=".29 .19 .03" pos ="0 0 0.4" type="box" material="bench_mat"/>
+            <geom size=".29 .19 .03" pos ="0 0 -0.2" type="box" material="bench_mat"/>
+            <geom size=".04 .04 .435" pos =".26 .16 0" type="box" material="bench_mat"/>
+            <geom size=".04 .04 .435" pos ="-.26 .16 0" type="box" material="bench_mat"/>
+            <geom size=".04 .04 .435" pos =".26 -.16 0" type="box" material="bench_mat"/>
+            <geom size=".04 .04 .435" pos ="-.26 -.16 0" type="box" material="bench_mat"/>
+            <inertial pos="0 0 0" mass="1000" diaginertia="0 0 0" />
+        </body>
+
+
+        <body name="drop_box" pos="0.6 0.0 0.0">
+            <geom size=".2 .3 .03" pos ="0 0 0.615" type="box" material="bench_mat"/>
+            <geom size=".03 .3 .4" pos ="0.23 0.0 0.4" type="box" material="bench_mat"/>
+            <geom size=".03 .3 .4" pos ="-0.23 0.0 0.4" type="box" material="bench_mat"/>
+            <geom size=".26 .03 .4" pos ="0.0 0.33 0.4" type="box" material="bench_mat"/>
+            <geom size=".26 .03 .4" pos ="0.0 -0.33 0.4" type="box" material="bench_mat"/>
+            <inertial pos="0 0 0" mass="1000" diaginertia="0 0 0" />
+        </body>
+
+
+        <!--Robot UR5-->
+        <body name="box_link" pos="0 0 0.435">
+            <!--<geom size=".3 .2 .435" type="box" material="bench_mat"/>-->
+            <geom size=".29 .19 .03" pos ="0 0 0.4" type="box" material="bench_mat"/>
+            <geom size=".29 .19 .03" pos ="0 0 -0.2" type="box" material="bench_mat"/>
+            <geom size=".04 .04 .435" pos =".26 .16 0" type="box" material="bench_mat"/>
+            <geom size=".04 .04 .435" pos ="-.26 .16 0" type="box" material="bench_mat"/>
+            <geom size=".04 .04 .435" pos =".26 -.16 0" type="box" material="bench_mat"/>
+            <geom size=".04 .04 .435" pos ="-.26 -.16 0" type="box" material="bench_mat"/>
+            <inertial pos="0 0 0" mass="1000" diaginertia="0 0 0" />
+            <body name="base_link" pos="0 0 0.435">
+                <inertial pos="0 0 0" quat="0.5 0.5 -0.5 0.5" mass="4" diaginertia="0.0072 0.00443333 0.00443333" />
+                <geom type="mesh"  mesh="base" material="ur5_mat"/>
+                <body name="shoulder_link" pos="0 0 0.089159">
+                    <inertial pos="0 0 0" mass="3.7" diaginertia="0.0102675 0.0102675 0.00666" />
+                    <joint name="shoulder_pan_joint" class="Uw Êå³¿ÙÀ
+Ä3°?8zâEÉ?æ+oKÚ9¿?Oþ ·?ö°IÎ·Ÿk¿F{‘8	Í¹?Á8#63t¼?M†šýŸw˜?ž:á®4Â?»=&Çç	§?ñX±žV³¿é%ÄN´?F[ZÃ´?6@åv}œ<?Uq¿·/ƒÈ?åçã Ó·?_àØ•MÅ?7¦fd:¡³?¶C.rÕÈ?t½›-õË?Cq*¶Œ¬À?˜¥Ù$ê¥Ï?vÎ}¶2›?¦íF½À?
+‚7i¬¿GÈ,ŠytÃ¿4nzQøìµ¿õ–pD±?oÍ'³¬?Ewß|÷ŽÎ¿ÅœEâÞ Ë?AØü¶èŽ?T«!týª?IšzWØ½Æ?iˆFÀÊ¿Ú÷ø´?7ø•íu¿?æ¾ð€@›Â¿_î~­ô³?ñ•ÈüMK¿{%¾Z¨?¢rÆŽsŠÂ¿+Y‘éÁµ?’¤¤ª¿›¶¿¢<‰eÞ×?1sôÙ-·¿âY9YPÑÀ?œàè|Ewµ?N˜í„5Â?Ó¢s½vº?Q¯>ešóÒ?õƒ£BCìÂ?â'Ë<„ ?­Äå•ß[œ¿V\ˆ«ÆÄ¿ö’ÖîqxÎ?l ®mu0Ä?Ä” Ë•&Ã?Z§û€²úÈ¿7ËÏ>—Ë?ˆÄzîÌ?1-±hÖ³?mVwÐç{Ä?‘7W` ²¿~7r	>¢?!¼O;þ²²?Â¿ö¶a±?êÑY1¦?p-Ã'Ñ?+Õ—3tŽ?¥J-FæçÀ?üFÈ¬*»¿³”?Ïn²?ÕäIÝÄÖ?\ûq&çKµ?!¢ÖÍCŠÉ?8&D³]žÄ¿Œ0¬³û®¿?'V¾]Î?ÃÜ7R§®¿¾Ó'kÀ¿­ò®TÆÒÅ?O5$’Õê­?’9YîÿÂ?¿ûf}ÀH¹?V0lÍÖÇ?xAð±?í6zŠºÐ?c½ëÇÞñ¶¿=¡T` ³?Ç'9:ž	Å?˜¤Øuc·?Tdys»?ì€]:E°?B7‹Î?Ç*Ž£ ©?+ßE¾È?¬%!Pû*Ì?4ËÝdS«µ?¯6÷†É?Ø¼Ìe>IÉ?Æs&oº?½p˜NèÊ·?âð¶:Ò?áaYÂ?Ž…ëyKhÌ?Õ¦jq¨Ê?‘Â[ ÏÄ«?|¨Í2Ž½??Í ¡Ð?0¢’C³ù¨?Ü³ÇýØwÏ?<Š@Ë¥?}sFÍ?­]¢‡-³?Ï¢€A¯?ÏŒÉòÌ©?R”ÑôÜ:…?“	äæ?~ª?2³w=Á?†R-Ó{…»?BÔ”1ær•?“v)—ÂžÃ?[@ØžÂ?B¸ÛA$Ó¿¶²3Ä…¬?¤/_%ëè½?áÛ¯áÃ1Î?ÒŒÍU÷×¸?HGÏ["š±? £åM¶…Ì?{NÜ§ÚÔ?×!Û=Ï?ÉçWTÅ?}€ˆr¨¿0ã`ù˜?ñYÍ”T!Ó?ö*®þÍ Â?‘(Íh ‹Å?#Ù€>`×?Ñad¡ °¿
+¸ÊÕ0×?`DóNAÃ?ŒYñžqC½¿ÍóW’«;¨?uü@ ?É?WŽñèß¸?‘ëäš¯ŒÐ¿¶ª.`¹?|£ÂãuÀ?WwÀ%Ôr¿?-FŒ)·?C?
+¬êyÆ?TlÕCM^¼?5§~öùª?æÿÐ¡¨?ø/6þ1ÙÒ?"ÿ!iOÅ?{‹óH. ´?}x&Í?Nw1¦®?†4—ÊÂ?Ò´•À3¸?”g¤¿cLØ?ªŽÄÔ°‹¿î˜ÎîÞTÁ?H&öc6Î?(âmÒ#¾?tjÿµbÒ?)éèÒðzÊ?ÏR˜¹à?¾XòâÓ?hVÈ,3Â?ri®C¥½Î¿`ÑÎú¸m³?ðÇ½ÇðœË?õ°HJØˆÑ¿Ç–‚[]É?9lµ²?‡90³gÀ?ô÷,8º¾?³[õB¬À?wœþ¡Ù°?üÑúœÒ”š?E&$È?1¨¿‚K™ìÂ(À?ìÅ]¨Òø­¿¶:ê…_Ñ¿}¤V^–Ã¿X;4â	Ñ?’ÂÆëÐ?'*=æ†–Ù?•x²ûÐ?–µ™Y«?L®š+â®¿Êrõ~Ò?ùBëû^ÏÃ?Ip·âÿ¦Á?Ó–dkŒc?ÙŠ¼«†„?Ì%~õ\Ï?ìãå¤—ˆÙ?Ô†ä¨?jXÉÄ‚Ä?9™Z•;¦?Ý<:¿ÖÄ?Í«·±Î?“£ŒHÒºÑ?d¤^»?Ý×§š©{²?Ù¨Î÷±?Á|D³mµ?ÿŠôÝÀ?œfÚþT›“?™‹M3ðâ´¿uv´ÖÌ?T¶7mµÄÁ?AGm¨fÆÂ?K@<ÉÕ?M©»Fß¾?aöÐkG¢?`¹Õ˜¿Með•·WÉ?ÑÑ/ùÇ|Ë¿gFHäë¶?žÜ¨d¯Ê¿ý~A™¿Ô®?¾×b½¢¿x±4øq#Ä?’¨Ams¿ÏHåîÒ¹?~@à/“ý£?{ÁœH	Ñ?g¬B6œU«?}é£ÆëÂ?à¯§Èûµ¿wÞc|ÒÿÐ?.	tl4Ç?ŽxC²¿‚ÿ¦ ‹hÁ¿uÔ XZ¨?5µüLíÒ?á™'1ÈáÑ¿ÿ‡¸X»¿èáËx$T•?ÿçÆï‚ÃÉ?E/!ÌU;Ñ¿ˆ%LËâ·?Íš'4·?Ì i­XÉ?oU»¹•Q`¿ÖXZO¹Ë?‚þGÞÈSÌ?¥bGZ}3º?d¸^ß—ŒÆ?bxÓ‚Ûæ½?Å×î¤.1½?9­jd¿?mî_¡µ?RÙlfÔ\Ò?nÿ’!}‰Ñ?ºÌÎ"Å?1G“Há‡?bxÁ„½²¿4hë£–-£¿ÞÞi–lÃ?Û<+)‹œ¿8­"‘~'Ö?V^1*'ô²?º­›²ëÊ?Èga˜-º?wQ¢Â^ª?¬ ×W•Ñ?P_ºáð±¿3YpåûJ·?ŒÆî¿¿ K‚qÞÁ?ïákAj©?·Iï$JÜ?Œå¬HL§·?×[Q£J¶?Â~ZDÊq®?í‚±¹¸ù­?ëÖ”¯YÔ?@
+æ†º½¸¿ø>³?¯ûùƒ°?um•0>Œª?ÁC*Ó¦?â©ÇÜ& ¿Ÿ¥’ÑvþÔ?èþk,Á¿¹p¨é‘¹?»
+¡Ì~+À?¦†ªjÃÌ?ko›»+™·?|àFÇ’ ?L6Ã‡"½¹?¨«ã:ª°?ójõUŒàÀ?³IÞ½„²€?pjC¶´´?œMF{‡Í?-Ïw¢?³-’ }Ì?¤ª7w;Ï°¿s[îjÈ?¿Ä‰£n§?
+²02UiŽ?4‚…¥ÁV£?W×œ‹¤Ó?zðNUòð±?ÏÆì›¦î¥?ÁgÃ_Ã?¶‹U<q ®?~2~7‰q½?î)ê»á¹¿V¤ó/,Ã?Ø,'É?hEp3È?o‰cWÞºÀ?»\%¾…ˆ´?äµ²½.Ý©?Åc³ö’“Ò?i.FËáÕ?°@/ƒÂ?ƒ#Ë"d¦?³û_ö»¤Õ¿ª!P‹°¿2£‘tÍ³?ÀBìó­F¶?O:/œNÔ?vªÙÏÁ?1IÍ'ŽH§?Ñà·µß¦?ø²f0z¶?Ã‘ÉÀj^Ð?eÿT,ÞÊ?±…@ÂŽÀ¦?C‡EŒ±¿ÆgÇñ—?7Ÿ<Œ BÑ¿ÁÏz­õÖ?T’¤TV“À?±~ï‰ü—°¿,Rá¬;DÄ¿˜ÜÉ`Ý¢?ª—P!Ê’w?_Š1lß(·?=IçxÉ?2ˆƒpØ?¼öñÈä»?»žzV“«À?wkÜ‘®Â?ÿ‹G©I ¦?<içÒB±¿¼Ä·ö8¿§‚‡ÖƒßÒ?e~pàÔðœ?ÉÐ¦+”éÃ?€/“…³?u+Ã¡µ¹?!!ä±6¤?.­©?×?!ï}³j·»¿ß’ïî"Jª¿oi«ÙÇ?fú¦LsÇ?¿où¨fb¢?æôâÔ#·?ªÓ˜êZÀ?¬n#PŒÉ¿ˆ`ìe[±?üÇõñ¡?ÁCªùÜç¶?Ìü6§®;¹?{3ØÿÛÒ?Tåy,Ìö¶?†R²ÿ0Ý¿Îë .ß ?gAÜá‘9À?×ªà3l¿Æ:åq†­?Ï³Õs"ÀË¿ßçõwÅ¿zS£^)—¿ûâom0É?ÞºHÑÝAÒ¿IÂ)Îñº¶?KÖ¶ÛšÈ¿CBõtÃ?®°Ì—)B³?ýVªïó¬?W3D]qÄ?¦KKS†'Í?-k"ÄïåÆ?¾Üíyt2Á?>Ôƒî}7Ò?wžªRi¨Ó?nã¦ˆ€²¿Ð?ˆê¡€?
+Z[¾+Ë?Ôå§Qýãº?Œ€Cìö!º?·%TCxVd¿ðÛI'ŸÐ­?ÐÒ7­úÅ?§ãj¢Ïƒ…?ŠeúmFÊ?.½ÎcH£?Æÿ N‹Á¿4ˆVWð´¼?L&¸ãÅ‹?òÿ!£?»ÙlK&Ë?jJnhN»¶?÷ÎœåÆ?ë¡[Î¦µ?X º¼xÆ?µSÂ—h Ê?a‘#IÆ¶?]'ÓæïÖÍ?
+ÙÔCã²?©‹æÛé²?ï_¡¾˜?¢RªK˜»¿éŽ'ŒT·¿>ƒ™O³Œ¿õR™Jô¢¿ÄÓŽÿ3Õ¿`ïÆÂ`Ò¿?ÒR‹Û­?ÞºÊ¯³jŒ¿´ç.´[·Ê?‹0üúB“Î¿Ô	€2«³¶?ùÀÚ>°?>šDIäøÁ¿èj>Ð¯?	•¤{¸•?¹ˆ`ÐÆî´?1Ø©”[È¿CY¹IÉ°º?¦â‘“Æ¿ ¾*ŒúÙ?$Çâ­Â©¿U¦(¬<‰¿?Ý†09¶¨?‰áßpIÃ?ü«T
+Z2–?7¼*:†ÊÑ?l¾: Fº?[ÄR›z]p?¸’²sEçª¿änÁ¯«ªº¿ºïïàÈ?™XWHŸÐÁ?B¹¸›®¼?90òÑJÌ¿©“/ÊCÃ?dˆž|Ñ?Úk´[‘?^3öKºÏÂ?Ðmüð¢­¡¿}êQ?ßÇ¯?/yÆã Ä?T=o²?Â°?oˆêa²?[»ÂÝ|Ó?Šý@;Õê¤?œç¦Î½¿?OUl,4·¿æ2IˆÊr¿Ï@Úè›Ó?²²„;¥–«?$Eµ•ºþÅ?ÂîW6¦Ã¿ÕŠõ÷Á½?xâ¥ÕŽnÊ?ÉhXLÂ|´¿A½˜žÄ¾¿U69ù¨VÆ?#p&á¸±¶?Ë/~Sà¶?/Ñ‘¸š?}Wd.ùŒÂ?KÇ-‰ô³?¦-zeŠÑ?¹ÿ7™“ÛÃ¿ØŒÈ¸?Vtþ­þ{È?:ÉÔàØ°ª?øÁè1é©?@VÜâ7ÝÁ?Œ` ›uÄ?ë¶}Íü¦?ÍÀ“oØ3Á?¥º×+ÓLË?>(8#5³?Š\÷"aÊ?Â6ñØLÒË?¤û…½ý.‰?¦'«c±?m!]¿KMÒ?’JHHè¹?YyŠ¶<Ð?æ…ÞÛ'È?|w9D,“?q—ò.D³?3QD„4Î?
+ž
+y¿53 0 0.045497" >
+                                                    <inertial pos="0.00602756 0 0.00669926"  quat="0.699065 0.106339 0.106339 0.699065" mass="0.00724255" diaginertia="1.70064e-06 1.58577e-06 3.69621e-07" />
+                                                    <geom type="mesh" rgba="0.1 0.1 0.1 1" friction="0.8 0.8 0.8" mesh="inner_finger_coarse" />
+                                                </body>
+                                            </body>
+
+                                            <body name="right_inner_knuckle" pos="-0.0127 0 0.0693075" quat="0 0 0 1">
+                                                <inertial pos="0.0168606 3.93808e-10 0.02267"  quat="0.949317 0 -0.314322 0" mass="0.0110931" diaginertia="5.59353e-06 3.96549e-06 1.88108e-06" />
+                                                <geom type="mesh" rgba="0.1 0.1 0.1 1" friction="0.8 0.8 0.8" mesh="inner_knuckle_coarse" />
+                                                <joint name="base_to_rik" class="GRIPPER" pos="0 0 0" axis="0 1 0" limited="true" range="-1 1" />
+
+                                                <body name="right_inner_finger" pos="0.034106 0 0.0458574">
+                                                    <inertial pos="0.00602756 0 0.00669926"  quat="0.699065 0.106339 0.106339 0.699065" mass="0.00724255" diaginertia="1.70064e-06 1.58577e-06 3.69621e-07" />
+                                                    <geom type="mesh" rgba="0.1 0.1 0.1 1" friction="0.8 0.8 0.8" mesh="inner_finger_coarse" />
+                                                </body>
+                                            </body>
+                                    </body>
+                                </body>
+                            </body>
+                        </body>
+                    </body>
+                </body>
+            </body>
+        </body>
+    </body>
+                <body name="base" pos="0 0 0" quat="1.7949e-09 0 0 -1">
+                    <inertial pos="0 0 0" quat="1.7949e-09 0 0 -1" mass="0" diaginertia="0 0 0" />
+                </body>
+        </body>
+
+   <!--      <body name="pick_box_1" pos="0 -0.6 0.9">
+                <freejoint name="tablebox_joint" />
+                <geom size="0.03 0.03 0.03" pos="0 0 0.03" type="box" material="tablecube"/>
+                <inertial pos="0 0 0.03" mass="0.5" diaginertia="0 0 0" />
+        </body> -->
+
+        <body name="box_1" pos=".0 -.6 0.9">
+            <joint armature="0" axis="1 0 0" damping="0" limited="false" name="box_1_x" pos="0 0 0" range="-5. 5." stiffness="0" type="slide"/>
+            <joint armature="0" axis="0 1 0" damping="0" limited="true" name="box_1_y" pos="0 0 0" range="-5. 5." stiffness="0" type="slide"/>
+            <joint armature="0" axis="0 0 1" damping="0" limited="true" name="box_1_z" pos="0 0 0" range="-2. 2." stiffness="0" type="slide"/>
+            <!-- <joint armature="0" damping="0" name="box_1_rot" pos="0 0 0" stiffness="0" type="ball"/> -->
+            <geom name="box_1" pos="0 0 0" material="tablecube" size="0.02 0.02 0.02" type="box"/>
+            <inertial pos="0 0 0" mass="0.2" diaginertia="0.001 0.001 0.001" />
+        </body>
+
+        <body name="box_2" pos=".0 -.6 1.0">
+            <joint armature="0" axis="1 0 0" damping="0" limited="true" name="box_2_x" pos="0 0 0" range="-5. 5." stiffness="0" type="slide"/>
+            <joint armature="0" axis="0 1 0" damping="0" limited="true" name="box_2_y" pos="0 0 0" range="-5. 5." stiffness="0" type="slide"/>
+            <joint armature="0" axis="0 0 1" damping="0" limited="true" name="box_2_z" pos="0 0 0" range="-2. 2." stiffness="0" type="slide"/>
+            <!-- <joint armature="0" damping="0" name="box_2_rot" pos="0 0 0" stiffness="0" type="ball"/> -->
+            <geom name="box_2" pos="0 0 0" rgba="0.0 0.5 0.8 1" size="0.02 0.02 0.02" type="box"/>
+            <inertial pos="0 0 0" mass="0.2" diaginertia="0.001 0.001 0.001" />
+        </body>
+
+        <body name="box_3" pos=".0 -.6 1.1">
+            <joint armature="0" axis="1 0 0" damping="0" limited="true" name="box_3_x" pos="0 0 0" range="-5. 5." stiffness="0" type="slide"/>
+            <joint armature="0" axis="0 1 0" damping="0" limited="true" name="box_3_y" pos="0 0 0" range="-5. 5." stiffness="0" type="slide"/>
+            <joint armature="0" axis="0 0 1" damping="0" limited="true" name="box_3_z" pos="0 0 0" range="-2. 2." stiffness="0" type="slide"/>
+            <!-- <joint armature="0" damping="0" name="box_3_rot" pos="0 0 0" stiffness="0" type="ball"/> -->
+            <geom name="box_3" pos="0 0 0" rgba="0.8 0.8 0.1 1" size="0.02 0.02 0.02" type="box"/>
+            <inertial pos="0 0 0" mass="0.2" diaginertia="0.001 0.001 0.001" />
+        </body>
+
+        <body name="ball_1" pos=".0 -.6 1.2">
+            <joint armature="0" axis="1 0 0" damping="0" limited="true" name="ball_1_x" pos="0 0 0" range="-5. 5." stiffness="0" type="slide"/>
+            <joint armature="0" axis="0 1 0" damping="0" limited="true" name="ball_1_y" pos="0 0 0" range="-5. 5." stiffness="0" type="slide"/>
+            <joint armature="0" axis="0 0 1" damping="0" limited="true" name="ball_1_z" pos="0 0 0" range="-2. 2." stiffness="0" type="slide"/>
+            <!-- <joint armature="0" damping="0" name="ball_1_rot" pos="0 0 0" stiffness="0" type="ball"/> -->
+            <geom name="ball_1" pos="0 0 0" rgba="0.9 0.2 0.2 1" size=".03" type="sphere"/>
+            <inertial pos="0 0 0" mass="0.2" diaginertia="0.001 0.001 0.001" />
+        </body>
+
+        <body name="ball_2" pos=".0 -.6 1.3">
+            <joint armature="0" axis="1 0 0" damping="0" limited="true" name="ball_2_x" pos="0 0 0" range="-5. 5." stiffness="0" type="slide"/>
+            <joint armature="0" axis="0 1 0" damping="0" limited="true" name="ball_2_y" pos="0 0 0" range="-5. 5." stiffness="0" type="slide"/>
+            <joint armature="0" axis="0 0 1" damping="0" limited="true" name="ball_2_z" pos="0 0 0" range="-2. 2." stiffness="0" type="slide"/>
+            <!-- <joint armature="0" damping="0" name="ball_2_rot" pos="0 0 0" stiffness="0" type="ball"/> -->
+            <geom name="ball_2" pos="0 0 0" material="geom" size=".03" type="sphere"/>
+            <inertial pos="0 0 0" mass="0.2" diaginertia="0.001 0.001 0.001" />
+        </body>
+
+        <body name="ball_3" pos=".0 -.6 1.4">
+            <joint armature="0" axis="1 0 0" damping="0" limited="true" name="ball_3_x" pos="0 0 0" range="-5. 5." stiffness="0" type="slide"/>
+            <joint armature="0" axis="0 1 0" damping="0" limited="true" name="ball_3_y" pos="0 0 0" range="-5. 5." stiffness="0" type="slide"/>
+            <joint armature="0" axis="0 0 1" damping="0" limited="true" name="ball_3_z" pos="0 0 0" range="-2. 2." stiffness="0" type="slide"/>
+            <!-- <joint armature="0" damping="0" name="ball_3_rot" pos="0 0 0" stiffness="0" type="ball"/> -->
+            <geom name="ball_3" pos="0 0 0" rgba="0.2 0.2 0.5 1" size=".03" type="sphere"/>
+            <inertial pos="0 0 0" mass="0.2" diaginertia="0.001 0.001 0.001" />
+        </body>
+
+<!--         <body name="cylinder_1" pos=".15 -.55 1.3">
+            <joint armature="0" axis="1 0 0" damping="0" limited="true" name="cylinder_1_x" pos="0 0 0" range="-5. 5." ref=".1" stiffness="0" type="slide"/>
+            <joint armature="0" axis="0 1 0" damping="0" limited="true" name="cylinder_1_y" pos="0 0 0" range="-5. 5." ref="-.1" stiffness="0" type="slide"/>
+            <joint armature="0" axis="0 0 1" damping="0" limited="true" name="cylinder_1_z" pos="0 0 0" range="-2. 2." ref="-.1" stiffness="0" type="slide"/>
+            <geom name="cylinder_1" pos="0 0 0" material="geom" size=".025 0.05" type="cylinder"/>
+            <inertial pos="0 0 0.01" mass="0.2" diaginertia="0 0 0" />
+        </body>
+ -->
+
+    </worldbody>
+
+
+   <!--  <tendon>
+		<fixed name="middle12_cpl" range="0 1">
+			<joint joint="base_to_rik"  coef="1"/>
+			<joint joint="base_to_lik"  coef="-1"/>
+		</fixed>
+    </tendon> -->
+	<!-- 	<fixed name="middle23_cpl" range="0 1">
+			<joint joint="gripperfinger_middle_joint_2"  coef="1"/>
+			<joint joint="gripperfinger_middle_joint_3"  coef="-3.5"/>
+		</fixed>
+
+        <fixed name="finger2_12_cpl" range="0 1">
+			<joint joint="gripperfinger_2_joint_1"  coef="1"/>
+			<joint joint="gripperfinger_2_joint_2"  coef="-1.5"/>
+		</fixed>
+		<fixed name="finger2_23_cpl" range="0 1">
+			<joint joint="gripperfinger_2_joint_2"  coef="1"/>
+			<joint joint="gripperfinger_2_joint_3"  coef="-3.5"/>
+		</fixed>
+
+        <fixed name="finger1_12_cpl" range="0 1">
+			<joint joint="gripperfinger_1_joint_1"  coef="1"/>
+			<joint joint="gripperfinger_1_joint_2"  coef="-1.5"/>
+		</fixed>
+		<fixed name="finger1_23_cpl" range="0 1">
+			<joint joint="gripperfinger_1_joint_2"  coef="1"/>
+			<joint joint="gripperfinger_1_joint_3"  coef="-3.5"/>
+		</fixed>
+	</tendon> -->
+
+    <equality>
+		<!-- <tendon name="middle12_cpl" 	tendon1="middle12_cpl"/> -->
+		<!-- <tendon name="middle23_cpl" 	tendon1="middle23_cpl"/> -->
+
+        <!-- <tendon name="finger2_12_cpl" 	tendon1="finger2_12_cpl"/> -->
+		<!-- <tendon name="finger2_23_cpl" 	tendon1="finger2_23_cpl"/> -->
+
+        <!-- <tendon name="finger1_12_cpl" 	tendon1="finger1_12_cpl"/> -->
+		<!-- <tendon name="finger1_23_cpl" 	tendon1="finger1_23_cpl"/> -->
+
+		<joint name="fingers" joint1="base_to_rik" joint2="base_to_lik" polycoef="0 1 0 0 0"/>
+	</equality>
+
+
+    <!--ACTUATORS-->
+    <actuator>
+        <!--UR5-->
+        <!--<position name='shoulder_pan' ctrllimited="true" ctrlrange="-3.14159 3.14159" joint='shoulder_pan_joint' kp="500"/>-->
+        <!--<position name='shoulder_lift' ctrllimited="true" ctrlrange="-3.14159 3.14159" joint='shoulder_lift_joint' kp="500"/>-->
+        <!--<position name='forearm' ctrllimited="true" ctrlrange="-3.14159 3.14159" joint='elbow_joint' kp="500"/>-->
+        <!--<position name='wrist_1' ctrllimited="true" ctrlrange="-3.14159 3.14159" joint='wrist_1_joint' kp="100"/>-->
+        <!--<position name='wrist_2' ctrllimited="true" ctrlrange="-3.14159 3.14159" joint='wrist_2_joint' kp="100"/>-->
+        <!--<position name='wrist_3' ctrllimited="true" ctrlrange="-3.14159 3.14159" joint='wrist_3_joint' kp="100"/>-->
+
+        <motor name='shoulder_pan_T' ctrllimited="true" ctrlrange="-2 2" joint='shoulder_pan_joint' gear="101"/> <!--range -150 150-->
+        <motor name='shoulder_lift_T' ctrllimited="true" ctrlrange="-2 2" joint='shoulder_lift_joint' gear="101"/>
+        <motor name='forearm_T' ctrllimited="true" ctrlrange="-2 2" joint='elbow_joint' gear="101" />
+        <motor name='wrist_1_T' ctrllimited="true" ctrlrange="-1 1" joint='wrist_1_joint' gear="101"/>  <!--range -28 28-->
+        <motor name='wrist_2_T' ctrllimited="true" ctrlrange="-1 1" joint='wrist_2_joint' gear="101"/>
+        <motor name='wrist_3_T' ctrllimited="true" ctrlrange="-1 1" joint='wrist_3_joint' gear="101"/>
+
+
+
+
+        <motor name='gripper_motor' ctrllimited="true" ctrlrange="-10 10" joint='base_to_lik' gear="101"/>
+
+        <!--<velocity name='shoulder_pan_v' class="UR5" joint='shoulder_pan_joint' kv="10"/>-->
+        <!--<velocity name='shoulder_lift_v' class="UR5" joint='shoulder_lift_joint' />-->
+        <!--<velocity name='forearm_v' class="UR5" joint='elbow_joint' />-->
+        <!--<velocity name='wrist_1_v' class="UR5" joint='wrist_1_joint' />-->
+        <!--<velocity name='wrist_2_v' class="UR5" joint='wrist_2_joint'/>-->
+        <!--<velocity name='wrist_3_v' class="UR5" joint='wrist_3_joint'/>-->
+
+        <!--Gripper-->
+        <!--<position name='finger_1' ctrllimited="true" kp="20" joint='gripperfinger_1_joint_1' ctrlrange='0 1.2217'/>-->
+        <!--<position name='finger_2' ctrllimited="true" kp="20" joint='gripperfinger_2_joint_1' ctrlrange='0 1.2217'/>-->
+        <!--<position name='middle_finger'  ctrllimited="true" kp="20" joint='gripperfinger_middle_joint_1' ctrlrange='0 1.2217'/>-->
+        <!--<position name='finger_scissor' ctrllimited="true" kp="20" joint='gripperpalm_finger_1_joint' ctrlrange="-0.2967 0.2967"/>-->
+
+        <!-- <motor name='finger_1_T' ctrllimited="true" joint='gripperfinger_1_joint_1' ctrlrange='-0.5 .8' gear="20"/> -->
+        <!-- <motor name='finger_2_T' ctrllimited="true" joint='gripperfinger_2_joint_1' ctrlrange='-0.5 .8' gear="20"/> -->
+        <!-- <motor name='middle_finger_T'  ctrllimited="true" joint='gripperfinger_middle_joint_1' ctrlrange='-0.5 .8' gear="20"/> -->
+        <!-- <motor name='finger_scissor_T' ctrllimited="true" joint='gripperpalm_finger_1_joint' ctrlrange="-0.8 0.8" gear="15"/>    -->
+
+     <!--    
+        <motor name='finger_1_T' ctrllimited="true" joint='gripperfinger_1_joint_1' ctrlrange='-0.1 .8' gear="20"/>
+        <motor name='finger_2_T' ctrllimited="true" joint='gripperfinger_2_joint_1' ctrlrange='-0.1 .8' gear="20"/>
+        <motor name='middle_finger_T'  ctrllimited="true" joint='gripperfinger_middle_joint_1' ctrlrange='-0.1 .8' gear="20"/>
+        <motor name='finger_scissor_T' ctrllimited="true" joint='gripperpalm_finger_1_joint' ctrlrange="-0.8 0.8" gear="15"/> -->
+    </actuator>
+
+   <!--  <sensor>
+        <touch name="gripperpalm_frc" 		site="gripperpalm"/>
+
+        <touch name="finger_1_polp_1_frc"	site="gripperfinger_1_polp_1"/>
+    	<touch name="finger_1_polp_2_frc" 	site="gripperfinger_1_polp_2"/>
+        <touch name="finger_1_polp_3_frc" 	site="gripperfinger_1_polp_3"/>
+
+        <touch name="finger_2_link_1_frc" 	site="gripperfinger_2_polp_1"/>
+        <touch name="finger_2_link_2_frc" 	site="gripperfinger_2_polp_2"/>
+        <touch name="finger_2_link_3_frc" 	site="gripperfinger_2_polp_3"/>
+
+        <touch name="finger_middle_link_1_frc" 	site="gripperfinger_middle_polp_1"/>
+        <touch name="finger_middle_link_2_frc" 	site="gripperfinger_middle_polp_2"/>
+        <touch name="finger_middle_link_3_frc" 	site="gripperfinger_middle_polp_3"/>
+    </sensor> -->
+</mujoco>

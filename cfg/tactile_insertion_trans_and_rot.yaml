@@ -1,0 +1,66 @@
+params:  
+  env:
+    use_torch: True
+    name: hexagon_insertion.xml
+    observation_noise: True
+    observation_type: tactile_map
+    allow_translation: True
+    allow_rotation: True
+    normalize_tactile_obs: True
+    action_xy_scale: 0.02
+    action_rot_scale: np.pi / 18.
+    num_obs_frames: 5
+    action_type: relative
+    reward_type: absolute
+    domain_randomization: True
+    render_tactile: True
+    verbose: False
+
+  network:
+    pretrained_model: ./trained_models/dynamic_round_model-10000.pth
+    actor_critic: ActorCriticMLP
+    adv_update_frequency: 10
+    adv_num_epochs: 10
+
+    rnn_hidden_size: 64
+    rnn_hidden_layers: 2
+
+    feature_cnn:
+      kernel_sizes: [3, 3]
+      layer_sizes: [16, 8]
+      stride_sizes: [1, 1]
+      hidden_size: 10
+      activation: elu
+      layernorm: False
+
+    actor_mlp:
+      layer_sizes: [256, 256]
+      activation: relu
+      layernorm: False
+    actor_logstd_init: -1
+
+    critic_mlp:
+      layer_sizes: [256, 256]
+      activation: relu
+      layernorm: False
+
+  config:
+    use_gae: True
+    num_env_steps: 3000
+    num_steps: 30
+    num_processes: 1
+    lr: 0.0003
+    entropy_coef: 0
+    value_loss_coef: 0.5
+    ppo_epoch: 20
+    num_mini_batch: 1
+    gamma: 0.99
+    gae_lambda: 0.95
+    use_linear_lr_decay: True
+    use_proper_time_limits: True
+    norm_reward: True
+    norm_obs: True
+    clip_reward: 10.
+    clip_obs: 10.
+    clip_param: 0.2
+    max_grad_norm: 0.5
